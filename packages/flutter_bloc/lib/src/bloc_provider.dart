@@ -156,20 +156,18 @@ class _BlocProviderState<B extends Cubit<dynamic>>
     super.dispose();
   }
 
-  B _create() {
-    if (_bloc == null) {
-      _bloc = widget.create(context);
-      WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-    }
-    return _bloc;
-  }
-
   @override
   Widget buildWithChild(BuildContext context, Widget child) {
     return _InheritedBlocProvider(
       child: child ?? widget.child,
       bloc: _bloc,
-      create: _create,
+      create: () {
+        if (_bloc == null) {
+          _bloc = widget.create(context);
+          WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+        }
+        return _bloc;
+      },
     );
   }
 }
