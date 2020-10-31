@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({
@@ -377,20 +376,6 @@ void main() {
     });
 
     testWidgets(
-        'should not wrap into FlutterError if '
-        'ProviderNotFoundException with wrong valueType '
-        'is thrown', (tester) async {
-      await tester.pumpWidget(
-        BlocProvider<CounterCubit>(
-          create: (context) => CounterCubit(onClose: Provider.of(context)),
-          child: const CounterPage(),
-        ),
-      );
-      final dynamic exception = tester.takeException();
-      expect(exception is ProviderNotFoundException, true);
-    });
-
-    testWidgets(
         'should not throw FlutterError if internal '
         'exception is thrown', (tester) async {
       final expectedException = Exception('oops');
@@ -441,6 +426,70 @@ void main() {
 
       final _counterText = _counterFinder.evaluate().first.widget as Text;
       expect(_counterText.data, '0');
+    });
+
+    testWidgets('context.listen registers context as dependant',
+        (tester) async {
+      const textKey = Key('__text__');
+      const buttonKey = Key('__button__');
+      var counterCubitCreateCount = 0;
+      var materialBuildCount = 0;
+      var textBuildCount = 0;
+      await tester.pumpWidget(
+        BlocProvider(
+          create: (_) {
+            counterCubitCreateCount++;
+            return CounterCubit();
+          },
+          child: Builder(
+            builder: (context) {
+              materialBuildCount++;
+              return MaterialApp(
+                home: Scaffold(
+                  body: Builder(
+                    builder: (context) {
+                      textBuildCount++;
+                      return Text(
+                        '${context.listen<CounterCubit, int>()}',
+                        key: textKey,
+                      );
+                    },
+                  ),
+                  floatingActionButton: FloatingActionButton(
+                    key: buttonKey,
+                    onPressed: () {
+                      context.bloc<CounterCubit>().increment();
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      var text = tester.widget<Text>(find.byKey(textKey));
+      expect(text.data, '0');
+      expect(counterCubitCreateCount, equals(1));
+      expect(materialBuildCount, equals(1));
+      expect(textBuildCount, equals(1));
+
+      await tester.tap(find.byKey(buttonKey));
+      await tester.pumpAndSettle();
+
+      text = tester.widget<Text>(find.byKey(textKey));
+      expect(text.data, '1');
+      expect(counterCubitCreateCount, equals(1));
+      expect(materialBuildCount, equals(1));
+      expect(textBuildCount, equals(2));
+
+      await tester.tap(find.byKey(buttonKey));
+      await tester.pumpAndSettle();
+
+      text = tester.widget<Text>(find.byKey(textKey));
+      expect(text.data, '2');
+      expect(counterCubitCreateCount, equals(1));
+      expect(materialBuildCount, equals(1));
+      expect(textBuildCount, equals(3));
     });
   });
 }
