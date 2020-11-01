@@ -136,7 +136,7 @@ class BlocProvider<B extends Cubit<dynamic>> extends SingleChildStatefulWidget
         ''',
       );
     }
-    return provider.create();
+    return provider.value();
   }
 }
 
@@ -164,8 +164,8 @@ class _BlocProviderState<B extends Cubit<dynamic>>
   Widget buildWithChild(BuildContext context, Widget child) {
     return _InheritedBlocProvider(
       child: child ?? widget.child,
-      bloc: _completer.future,
-      create: () {
+      deferredBloc: _completer.future,
+      value: () {
         if (!_completer.isCompleted) {
           _bloc = widget.create(context);
           _completer.complete(_bloc);
@@ -180,10 +180,10 @@ class _InheritedBlocProvider<B extends Cubit<dynamic>>
     extends DeferredInheritedStream<B> {
   _InheritedBlocProvider({
     Key key,
-    @required Future<B> bloc,
-    @required this.create,
+    @required Future<B> deferredBloc,
+    @required this.value,
     Widget child,
-  }) : super(key: key, deferredStream: bloc, child: child);
+  }) : super(key: key, deferredStream: deferredBloc, child: child);
 
-  final B Function() create;
+  final ValueGetter<B> value;
 }

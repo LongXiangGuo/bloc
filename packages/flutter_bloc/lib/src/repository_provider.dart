@@ -77,7 +77,7 @@ class RepositoryProvider<T> extends SingleChildStatefulWidget
         ''',
       );
     }
-    return provider.create();
+    return provider.value();
   }
 
   @override
@@ -101,14 +101,14 @@ class _RepositoryProviderState<T>
   @override
   Widget buildWithChild(BuildContext context, Widget child) {
     return _InheritedRepository(
-      create: () {
+      value: () {
         if (!_completer.isCompleted) {
           _repository = widget.create(context);
           _completer.complete(_repository);
         }
         return _repository;
       },
-      deferredRepository: _completer.future,
+      future: _completer.future,
       child: child ?? widget.child,
     );
   }
@@ -131,18 +131,18 @@ extension RepositoryProviderExtension on BuildContext {
 class _InheritedRepository<T> extends InheritedWidget {
   const _InheritedRepository({
     Key key,
-    this.deferredRepository,
-    this.create,
+    this.future,
+    this.value,
     @required Widget child,
   })  : assert(child != null),
         super(key: key, child: child);
 
-  final Future<T> deferredRepository;
-  final T Function() create;
+  final Future<void> future;
+  final ValueGetter<T> value;
 
   @override
   bool updateShouldNotify(_InheritedRepository<T> oldWidget) {
-    return oldWidget.deferredRepository != deferredRepository;
+    return oldWidget.future != future;
   }
 
   @override
@@ -151,12 +151,8 @@ class _InheritedRepository<T> extends InheritedWidget {
 }
 
 class _InheritedRepositoryElement<T> extends InheritedElement {
-  _InheritedRepositoryElement(
-    _InheritedRepository<T> widget,
-  ) : super(widget) {
-    widget.deferredRepository?.then((repository) {
-      _handleUpdate();
-    });
+  _InheritedRepositoryElement(_InheritedRepository<T> widget) : super(widget) {
+    widget.future?.then((_) => _handleUpdate());
   }
 
   @override
@@ -166,13 +162,9 @@ class _InheritedRepositoryElement<T> extends InheritedElement {
 
   @override
   void update(_InheritedRepository<T> newWidget) {
-    final oldRepository = widget.deferredRepository;
-    final newRepository = newWidget.deferredRepository;
-    if (oldRepository != newRepository) {
-      newRepository?.then((repository) {
-        _handleUpdate();
-      });
-    }
+    final oldFuture = widget.future;
+    final newFuture = newWidget.future;
+    if (oldFuture != newFuture) newFuture?.then((_) => _handleUpdate());
     super.update(newWidget);
   }
 
@@ -191,10 +183,5 @@ class _InheritedRepositoryElement<T> extends InheritedElement {
   void notifyClients(_InheritedRepository<T> oldWidget) {
     super.notifyClients(oldWidget);
     _dirty = false;
-  }
-
-  @override
-  void unmount() {
-    super.unmount();
   }
 }
