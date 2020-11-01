@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import 'package:bloc/bloc.dart';
@@ -141,12 +143,14 @@ class BlocProvider<B extends Cubit<dynamic>> extends SingleChildStatefulWidget
 class _BlocProviderState<B extends Cubit<dynamic>>
     extends SingleChildState<BlocProvider<B>> {
   B _bloc;
+  final _completer = Completer<B>();
 
   @override
   void initState() {
     super.initState();
     if (!widget.lazy) {
       _bloc = widget.create(context);
+      _completer.complete(_bloc);
     }
   }
 
@@ -160,11 +164,11 @@ class _BlocProviderState<B extends Cubit<dynamic>>
   Widget buildWithChild(BuildContext context, Widget child) {
     return _InheritedBlocProvider(
       child: child ?? widget.child,
-      bloc: _bloc,
+      bloc: _completer.future,
       create: () {
-        if (_bloc == null) {
+        if (!_completer.isCompleted) {
           _bloc = widget.create(context);
-          WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+          _completer.complete(_bloc);
         }
         return _bloc;
       },
@@ -173,13 +177,13 @@ class _BlocProviderState<B extends Cubit<dynamic>>
 }
 
 class _InheritedBlocProvider<B extends Cubit<dynamic>>
-    extends InheritedStream<B> {
+    extends DeferredInheritedStream<B> {
   _InheritedBlocProvider({
     Key key,
-    @required B bloc,
+    @required Future<B> bloc,
     @required this.create,
     Widget child,
-  }) : super(key: key, stream: bloc, child: child);
+  }) : super(key: key, deferredStream: bloc, child: child);
 
   final B Function() create;
 }

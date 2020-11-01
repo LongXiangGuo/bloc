@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   bloc: ^6.0.0
-  inherited_stream: ^1.0.0
+  inherited_stream: ^1.1.0
   nested: ^0.0.4
 
 dev_dependencies:
