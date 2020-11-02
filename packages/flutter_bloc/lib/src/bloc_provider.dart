@@ -13,11 +13,11 @@ typedef CreateBloc<T extends Cubit<dynamic>> = T Function(BuildContext context);
 /// of multiple [BlocProvider]s.
 mixin BlocProviderSingleChildWidget on SingleChildWidget {}
 
-/// Extends the `BuildContext` class with the ability
-/// to perform a lookup based on a `Bloc` type.
+/// Extends the [BuildContext] class with the ability
+/// to perform a lookup based on a [Cubit] type.
 extension BlocProviderExtension on BuildContext {
-  /// Performs a lookup using the `BuildContext` to obtain
-  /// the nearest ancestor `Cubit` of type [C].
+  /// Performs a lookup using the [BuildContext] to obtain
+  /// the nearest ancestor [Cubit] of type [C].
   ///
   /// Calling this method is equivalent to calling:
   ///
@@ -26,18 +26,29 @@ extension BlocProviderExtension on BuildContext {
   /// ```
   C bloc<C extends Cubit<Object>>() => BlocProvider.of<C>(this);
 
-  /// Performs a lookup using the `BuildContext` to obtain
-  /// the nearest ancestor `Cubit` of type [C] and registers the current
+  /// Performs a lookup using the [BuildContext] to obtain
+  /// the nearest ancestor [Cubit] of type [C] and returns the state.
+  /// This registers the current [BuildContext] as a dependant.
+  ///
+  /// Calling this method is equivalent to calling:
+  ///
+  /// ```dart
+  /// BlocProvider.of<C>(context, listen: true).state;
+  /// ```
+  S listen<C extends Cubit<S>, S>() {
+    return BlocProvider.of<C>(this, listen: true).state;
+  }
+
+  /// Performs a lookup using the [BuildContext] to obtain
+  /// the nearest ancestor [Cubit] of type [C] and registers the current
   /// [BuildContext] as a dependant.
   ///
   /// Calling this method is equivalent to calling:
   ///
   /// ```dart
-  /// BlocProvider.of<C>(context, listen: true);
+  /// BlocProvider.of<C>(context).state;
   /// ```
-  S listen<C extends Cubit<S>, S>() {
-    return BlocProvider.of<C>(this, listen: true).state;
-  }
+  S read<C extends Cubit<S>, S>() => BlocProvider.of<C>(this).state;
 }
 
 /// {@template bloc_provider}
@@ -111,7 +122,7 @@ class BlocProvider<B extends Cubit<dynamic>> extends SingleChildStatefulWidget
   /// in the widget tree we can do so via:
   ///
   /// ```dart
-  /// BlocProvider.of<BlocA>(context)
+  /// BlocProvider.of<BlocA>(context);
   /// ```
   static T of<T extends Cubit<dynamic>>(
     BuildContext context, {

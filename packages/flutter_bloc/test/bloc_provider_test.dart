@@ -245,11 +245,10 @@ void main() {
         child: const CounterPage(),
       ));
 
-      final _counterFinder = find.byKey((const Key('counter_text')));
-      expect(_counterFinder, findsOneWidget);
-
-      final _counterText = _counterFinder.evaluate().first.widget as Text;
-      expect(_counterText.data, '0');
+      final counterText = tester.widget<Text>(
+        find.byKey((const Key('counter_text'))),
+      );
+      expect(counterText.data, '0');
     });
 
     testWidgets(
@@ -312,11 +311,11 @@ void main() {
         child: RoutePage(),
       ));
 
-      final _routeButtonFinder = find.byKey((const Key('route_button')));
-      expect(_routeButtonFinder, findsOneWidget);
+      final routeButtonFinder = find.byKey((const Key('route_button')));
+      expect(routeButtonFinder, findsOneWidget);
       expect(closeCalled, false);
 
-      await tester.tap(_routeButtonFinder);
+      await tester.tap(routeButtonFinder);
       await tester.pumpAndSettle();
 
       expect(closeCalled, false);
@@ -348,11 +347,11 @@ void main() {
       final Widget _child = RoutePage();
       await tester.pumpWidget(MyApp(value: value, child: _child));
 
-      final _routeButtonFinder = find.byKey((const Key('route_button')));
-      expect(_routeButtonFinder, findsOneWidget);
+      final routeButtonFinder = find.byKey((const Key('route_button')));
+      expect(routeButtonFinder, findsOneWidget);
       expect(closeCalled, false);
 
-      await tester.tap(_routeButtonFinder);
+      await tester.tap(routeButtonFinder);
       await tester.pumpAndSettle();
 
       expect(closeCalled, false);
@@ -403,9 +402,9 @@ void main() {
       expect(numBuilds, 1);
     });
 
-    testWidgets(
-        'should access cubit instance'
-        'via BlocProviderExtension', (tester) async {
+    testWidgets('should access cubit instance via context.bloc',
+        (tester) async {
+      const textKey = Key('__text__');
       await tester.pumpWidget(
         BlocProvider(
           create: (_) => CounterCubit(),
@@ -414,19 +413,38 @@ void main() {
               body: Builder(
                 builder: (context) => Text(
                   '${context.bloc<CounterCubit>().state}',
-                  key: const Key('value_data'),
+                  key: textKey,
                 ),
               ),
             ),
           ),
         ),
       );
-      final _counterFinder = find.byKey((const Key('value_data')));
-      expect(_counterFinder, findsOneWidget);
 
-      final _counterText = _counterFinder.evaluate().first.widget as Text;
-      expect(_counterText.data, '0');
+      final counterText = tester.widget<Text>(find.byKey(textKey));
+      expect(counterText.data, '0');
     });
+
+    testWidgets(
+      'should access cubit state directly via context.read',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: BlocProvider(
+                create: (context) => CounterCubit(),
+                child: Builder(
+                  builder: (context) {
+                    return Text('state: ${context.read<CounterCubit, int>()}');
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        expect(find.text('state: 0'), findsOneWidget);
+      },
+    );
 
     testWidgets('context.listen registers context as dependant',
         (tester) async {
