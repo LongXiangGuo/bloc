@@ -25,30 +25,6 @@ extension BlocProviderExtension on BuildContext {
   /// BlocProvider.of<C>(context);
   /// ```
   C bloc<C extends Cubit<Object>>() => BlocProvider.of<C>(this);
-
-  /// Performs a lookup using the [BuildContext] to obtain
-  /// the nearest ancestor [Cubit] of type [C] and returns the state.
-  /// This registers the current [BuildContext] as a dependant.
-  ///
-  /// Calling this method is equivalent to calling:
-  ///
-  /// ```dart
-  /// BlocProvider.of<C>(context, listen: true).state;
-  /// ```
-  S listen<C extends Cubit<S>, S>() {
-    return BlocProvider.of<C>(this, listen: true).state;
-  }
-
-  /// Performs a lookup using the [BuildContext] to obtain
-  /// the nearest ancestor [Cubit] of type [C] and registers the current
-  /// [BuildContext] as a dependant.
-  ///
-  /// Calling this method is equivalent to calling:
-  ///
-  /// ```dart
-  /// BlocProvider.of<C>(context).state;
-  /// ```
-  S state<C extends Cubit<S>, S>() => BlocProvider.of<C>(this).state;
 }
 
 /// {@template bloc_provider}

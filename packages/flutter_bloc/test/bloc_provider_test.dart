@@ -425,29 +425,7 @@ void main() {
       expect(counterText.data, '0');
     });
 
-    testWidgets(
-      'should access cubit state directly via context.state',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: BlocProvider(
-                create: (context) => CounterCubit(),
-                child: Builder(
-                  builder: (context) {
-                    return Text('state: ${context.state<CounterCubit, int>()}');
-                  },
-                ),
-              ),
-            ),
-          ),
-        );
-        expect(find.text('state: 0'), findsOneWidget);
-      },
-    );
-
-    testWidgets('context.listen registers context as dependant',
-        (tester) async {
+    testWidgets('listen: true registers context as dependant', (tester) async {
       const textKey = Key('__text__');
       const buttonKey = Key('__button__');
       var counterCubitCreateCount = 0;
@@ -467,10 +445,11 @@ void main() {
                   body: Builder(
                     builder: (context) {
                       textBuildCount++;
-                      return Text(
-                        '${context.listen<CounterCubit, int>()}',
-                        key: textKey,
-                      );
+                      final count = BlocProvider.of<CounterCubit>(
+                        context,
+                        listen: true,
+                      ).state;
+                      return Text('$count', key: textKey);
                     },
                   ),
                   floatingActionButton: FloatingActionButton(
