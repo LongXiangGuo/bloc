@@ -426,7 +426,7 @@ void main() {
     });
 
     testWidgets(
-      'should access cubit state directly via context.read',
+      'should access cubit state directly via context.state',
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -435,7 +435,7 @@ void main() {
                 create: (context) => CounterCubit(),
                 child: Builder(
                   builder: (context) {
-                    return Text('state: ${context.read<CounterCubit, int>()}');
+                    return Text('state: ${context.state<CounterCubit, int>()}');
                   },
                 ),
               ),

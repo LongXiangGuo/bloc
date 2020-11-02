@@ -48,7 +48,7 @@ extension BlocProviderExtension on BuildContext {
   /// ```dart
   /// BlocProvider.of<C>(context).state;
   /// ```
-  S read<C extends Cubit<S>, S>() => BlocProvider.of<C>(this).state;
+  S state<C extends Cubit<S>, S>() => BlocProvider.of<C>(this).state;
 }
 
 /// {@template bloc_provider}
